@@ -29,8 +29,6 @@ echo "✅ Connection to $SUPERCLUSTER_LOGIN_HOST is all good!"
 # nice display name for prompts
 SUPERCLUSTER_PROMPT="\033[90m${SUPERCLUSTER_NAME}:$\033[0m"
 
-COMMAND="hostname && sleep 20"
-
 # Come up with the place that the repository will be checked out to
 SANITIZED_AGENT_NAME=$(echo "$BUILDKITE_AGENT_NAME" | tr -d '"')
 PIPELINE_FOLDER_NAME="$SANITIZED_AGENT_NAME/$BUILDKITE_ORGANIZATION_SLUG/$BUILDKITE_PIPELINE_SLUG"
@@ -52,11 +50,11 @@ SUPERCLUSTER_EXIT_STATUS_FILE="buildkite-exit-status-${BUILDKITE_JOB_ID}"
 read -r -d '' SUPERCLUSTER_COMMAND_SCRIPT << EOM
 #!/bin/bash
 set -e
-if [[ -f "${COMMAND}" ]]; then
-  chmod +x "${COMMAND}"
-  ./"${COMMAND}"
+if [[ -f "${BUILDKITE_COMMAND}" ]]; then
+  chmod +x "${BUILDKITE_COMMAND}"
+  ./"${BUILDKITE_COMMAND}"
 else
-  ${COMMAND}
+  ${BUILDKITE_COMMAND}
 fi
 EOM
 
@@ -203,7 +201,7 @@ echo "Downloading logs and artifacts from the login node"
 
 run "scp \"${SUPERCLUSTER_LOGIN_HOST}\":\"${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_COMMAND_LOG_NAME} ${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_EXIT_STATUS_FILE}\" ."
 
-echo "+++ :notebook_with_decorative_cover: Results from \`$COMMAND\`"
+echo "+++ :notebook_with_decorative_cover: Results from \`$BUILDKITE_COMMAND\`"
 
 run "cat \"${SUPERCLUSTER_COMMAND_LOG_NAME}\""
 
