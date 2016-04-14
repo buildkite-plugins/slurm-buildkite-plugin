@@ -23,7 +23,7 @@ if [[ $SSH_TEST_EXIT_STATUS -ne 0 ]]; then
   exit $SSH_TEST_EXIT_STATUS
 fi
 
-echo "Connection to $SUPERCLUSTER_LOGIN_HOST is all good! ✅"
+echo "✅ Connection to $SUPERCLUSTER_LOGIN_HOST is all good!"
 
 # Since we did that test, we can use the information we got back to construct a
 # nice display name for prompts
@@ -135,7 +135,7 @@ while true; do
   SSH_GET_STATUS_EXIT_STATUS=$?
 
   if [[ "$NEW_JOB_STATUS" != "" ]]; then
-    echo "🕐  Status has changed to \"$NEW_JOB_STATUS\" ($(date))"
+    echo "🕐 Status has changed to \"$NEW_JOB_STATUS\" ($(date))"
   fi
 
   # If the SSH call fails, wait a while and try the loop again
@@ -172,7 +172,7 @@ while true; do
 EOM
 done
 
-echo "--- :earth_asia: Downloading logs from login node"
+echo "Downloading logs and artifacts from the login node"
 
 run "scp \"${SUPERCLUSTER_LOGIN_HOST}\":\"${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_COMMAND_LOG_NAME} ${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_EXIT_STATUS_FILE}\" ."
 
