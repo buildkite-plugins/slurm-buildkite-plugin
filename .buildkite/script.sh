@@ -82,29 +82,23 @@ export GIT_TERMINAL_PROMPT=0
 run "cd \"${SUPERCLUSTER_CHECKOUT_FOLDER}\""
 run "git clone -v -- \"${BUILDKITE_REPO}\" ."
 
-echo '~~~ :page_facing_up: Creating runner script'
-
 cat > "$SUPERCLUSTER_RUNNER_SCRIPT_NAME" <<- BEOM
 ${SUPERCLUSTER_RUNNER_SCRIPT}
 BEOM
 
-run "cat \"${SUPERCLUSTER_RUNNER_SCRIPT_NAME}\""
-run "chmod +x \"$SUPERCLUSTER_RUNNER_SCRIPT_NAME\""
-
-echo '~~~ :page_facing_up: Creating command script'
+chmod +x "$SUPERCLUSTER_RUNNER_SCRIPT_NAME"
 
 cat > "$SUPERCLUSTER_COMMAND_SCRIPT_NAME" <<- BEOM
 ${SUPERCLUSTER_COMMAND_SCRIPT}
 BEOM
 
-run "cat \"${SUPERCLUSTER_COMMAND_SCRIPT_NAME}\""
-run "chmod +x \"$SUPERCLUSTER_COMMAND_SCRIPT_NAME\""
+chmod +x "$SUPERCLUSTER_COMMAND_SCRIPT_NAME"
 
-echo '~~~ :desktop_computer: Submitting the job to the cluster'
+echo '~~~ :floppy_disk: Submitting the job to the cluster'
 run "sbatch --workdir=\"\$(pwd)\" --job-name=\"${SUPERCLUSTER_JOB_NAME}\" \"${SUPERCLUSTER_RUNNER_SCRIPT_NAME}\""
 EOM
 
-echo '~~~ Bootstrapping job on the supercluster'
+echo '~~~ :wrench: Connecting to the login node'
 
 ssh "$SUPERCLUSTER_LOGIN_HOST" "bash -s" < "$SUPERCLUSTER_BOOTSTRAP_SCRIPT_NAME"
 SSH_BOOTSTRAP_EXIT_STATUS=$?
@@ -114,7 +108,7 @@ if [[ $SSH_BOOTSTRAP_EXIT_STATUS -ne 0 ]]; then
   exit $SSH_BOOTSTRAP_EXIT_STATUS
 fi
 
-echo '~~~ :hourglass: Waiting for supercluster job to start'
+echo '~~~ :hourglass: Waiting for super cluster job to start'
 
 # The job status check command will grab the state for the current job (and
 # make sure it has no leading or trailing whitespace)
