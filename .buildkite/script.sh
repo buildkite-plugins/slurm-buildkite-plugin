@@ -97,8 +97,8 @@ else
   run "git clone -v -- \"${BUILDKITE_REPO}\" ."
 fi
 
-run "git clean --fdqx"
-run "git submodule foreach --recursive git clean \"--fdqx\""
+run "git clean -fdqx"
+run "git submodule foreach --recursive git clean \"-fdqx\""
 
 if [[ -n "${BUILDKITE_REFSPEC:-}" ]]; then
   run "git fetch -v origin \"${BUILDKITE_REFSPEC}\""
