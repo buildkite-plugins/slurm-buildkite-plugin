@@ -1,5 +1,15 @@
 #!/bin/bash
 
+function run {
+  echo -e "\033[90m$\033[0m \$1"
+  eval "\$1"
+  EVAL_EXIT_STATUS=\$?
+
+  if [[ \$EVAL_EXIT_STATUS -ne 0 ]]; then
+    exit \$EVAL_EXIT_STATUS
+  fi
+}
+
 echo "~~~ :mag: Testing connection to the login node \"$SUPERCLUSTER_LOGIN_HOST\""
 
 # Do the first check with BatchMode=yes (which won't prompt for password access)
@@ -20,8 +30,6 @@ echo "Connection to $SUPERCLUSTER_LOGIN_HOST is all good! ✅"
 SUPERCLUSTER_PROMPT="\033[90m${SUPERCLUSTER_NAME}:$\033[0m"
 
 COMMAND="hostname && sleep 20"
-
-# CHECKOUT_FOLDER=".buildkite/$BUILDKITE_ORGANIZATION_SLUG/$BUILDKITE_PIPELINE_SLUG"
 
 SUPERCLUSTER_CHECKOUT_FOLDER=".buildkite/${BUILDKITE_JOB_ID}"
 
@@ -120,7 +128,6 @@ IS_RUNNING=false
 
 # Run in a loop so if for some reason SSH disconnects, it'll retry the wait
 # once it's done. The possible states for a slurm job are:
-
 # RUNNING, RESIZING, SUSPENDED, COMPLETED, CANCELLED, FAILED, TIMEOUT, PREEMPTED, BOOT_FAIL or NODE_FAIL
 while true; do
   # Grab the current job status
@@ -167,10 +174,11 @@ done
 
 echo "~~~ :earth_asia: Downloading logs from login node"
 
-scp "${SUPERCLUSTER_LOGIN_HOST}":"${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_COMMAND_LOG_NAME} ${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_EXIT_STATUS_FILE}" .
+run "scp \"${SUPERCLUSTER_LOGIN_HOST}\":\"${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_COMMAND_LOG_NAME} ${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_EXIT_STATUS_FILE}\" ."
 
 echo "--- :notebook_with_decorative_cover: Results from \`$COMMAND\`"
 
-cat "${SUPERCLUSTER_COMMAND_LOG_NAME}"
+run "cat \"${SUPERCLUSTER_COMMAND_LOG_NAME}\""
 
-exit $(cat "${SUPERCLUSTER_EXIT_STATUS_FILE}")
+SUPERCLUSTER_EXIT_STATUS=$(cat "${SUPERCLUSTER_EXIT_STATUS_FILE}")
+run "exit ${SUPERCLUSTER_EXIT_STATUS}"
