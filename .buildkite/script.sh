@@ -1,5 +1,24 @@
 #!/bin/bash
 
+echo "~~~ :mag: Testing connection to $SUPERCLUSTER_LOGIN_HOST"
+
+# Do the first check with BatchMode=yes (which won't prompt for password access)
+SUPERCLUSTER_NAME=$(ssh -oBatchMode=yes "$SUPERCLUSTER_LOGIN_HOST" "echo \"\$(whoami)@\$(hostname)\"")
+SSH_TEST_EXIT_STATUS=$?
+
+# If the SSH connection test failed, we should just bail now
+if [[ $SSH_TEST_EXIT_STATUS -ne 0 ]]; then
+  echo "SSH connection test exited with $SSH_TEST_EXIT_STATUS"
+  echo $SUPERCLUSTER_HOSTNAME
+  exit $SSH_TEST_EXIT_STATUS
+fi
+
+echo "Connection to $SUPERCLUSTER_LOGIN_HOST is all good! ✅"
+
+# Since we did that test, we can use the information we got back to construct a
+# nice display name for prompts
+SUPERCLUSTER_PROMPT="\033[90m${SUPERCLUSTER_NAME}:$\033[0m"
+
 COMMAND="hostname && sleep 20"
 
 # CHECKOUT_FOLDER=".buildkite/$BUILDKITE_ORGANIZATION_SLUG/$BUILDKITE_PIPELINE_SLUG"
@@ -43,10 +62,8 @@ EOM
 cat > $SUPERCLUSTER_BOOTSTRAP_SCRIPT_NAME <<- EOM
 echo 'Connection established to "${SUPERCLUSTER_LOGIN_HOST}"'
 
-PROMPT="\033[90m$\033[0m"
-
 function run {
-  echo -e "\$PROMPT \$1"
+  echo -e "${SUPERCLUSTER_PROMPT} \$1"
   eval "\$1"
   EVAL_EXIT_STATUS=\$?
 
@@ -55,7 +72,7 @@ function run {
   fi
 }
 
-echo '--- Preparing repository on the login node'
+echo '~~~ :package: Preparing repository on the login node'
 
 run "rm -rf \"${SUPERCLUSTER_CHECKOUT_FOLDER}\""
 run "mkdir -p \"${SUPERCLUSTER_CHECKOUT_FOLDER}\""
@@ -65,7 +82,7 @@ export GIT_TERMINAL_PROMPT=0
 run "cd \"${SUPERCLUSTER_CHECKOUT_FOLDER}\""
 run "git clone -v -- \"${BUILDKITE_REPO}\" ."
 
-echo '--- Creating runner script'
+echo '~~~ :page_facing_up: Creating runner script'
 
 cat > "$SUPERCLUSTER_RUNNER_SCRIPT_NAME" <<- BEOM
 ${SUPERCLUSTER_RUNNER_SCRIPT}
@@ -74,7 +91,7 @@ BEOM
 run "cat \"${SUPERCLUSTER_RUNNER_SCRIPT_NAME}\""
 run "chmod +x \"$SUPERCLUSTER_RUNNER_SCRIPT_NAME\""
 
-echo '--- Creating command script'
+echo '~~~ :page_facing_up: Creating command script'
 
 cat > "$SUPERCLUSTER_COMMAND_SCRIPT_NAME" <<- BEOM
 ${SUPERCLUSTER_COMMAND_SCRIPT}
@@ -83,11 +100,11 @@ BEOM
 run "cat \"${SUPERCLUSTER_COMMAND_SCRIPT_NAME}\""
 run "chmod +x \"$SUPERCLUSTER_COMMAND_SCRIPT_NAME\""
 
-echo '--- Submitting the job to the cluster'
+echo '~~~ :desktop_computer: Submitting the job to the cluster'
 run "sbatch --workdir=\"\$(pwd)\" --job-name=\"${SUPERCLUSTER_JOB_NAME}\" \"${SUPERCLUSTER_RUNNER_SCRIPT_NAME}\""
 EOM
 
-echo '--- Bootstrapping job on the supercluster'
+echo '~~~ Bootstrapping job on the supercluster'
 
 ssh "$SUPERCLUSTER_LOGIN_HOST" "bash -s" < "$SUPERCLUSTER_BOOTSTRAP_SCRIPT_NAME"
 SSH_BOOTSTRAP_EXIT_STATUS=$?
@@ -97,7 +114,7 @@ if [[ $SSH_BOOTSTRAP_EXIT_STATUS -ne 0 ]]; then
   exit $SSH_BOOTSTRAP_EXIT_STATUS
 fi
 
-echo '--- Waiting for supercluster job to start'
+echo '~~~ :hourglass: Waiting for supercluster job to start'
 
 # The job status check command will grab the state for the current job (and
 # make sure it has no leading or trailing whitespace)
@@ -127,14 +144,14 @@ while true; do
 
   # Oh, it's running now!?
   if [[ "$NEW_JOB_STATUS" == *"RUNNING"* ]] && [[ "$IS_RUNNING" = false ]]; then
-    echo "--- Running on super cluster"
+    echo "~~~ :runner: Running on super cluster"
     IS_RUNNING=true
   fi
 
   # If the job IS_RUNNING and the NEW_JOB_STATUS is no longer *"RUNNING"*, then
   # it's done!
   if [[ "$NEW_JOB_STATUS" != *"RUNNING"* ]] && [[ "$IS_RUNNING" = true ]]; then
-    echo "--- Finished on super cluster"
+    echo "~~~ :thumbsup: Finished on super cluster"
     break
   fi
 
@@ -152,11 +169,11 @@ while true; do
 EOM
 done
 
-echo "--- Downloading logs from login node"
+echo "~~~ :earth_asia: Downloading logs from login node"
 
 scp "${SUPERCLUSTER_LOGIN_HOST}":"${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_COMMAND_LOG_NAME} ${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_EXIT_STATUS_FILE}" .
 
-echo "--- Results from `$COMMAND`"
+echo "--- :notebook_with_decorative_cover: Results from \`$COMMAND\`"
 
 cat "${SUPERCLUSTER_COMMAND_LOG_NAME}"
 
