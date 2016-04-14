@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "~~~ :mag: Testing connection to $SUPERCLUSTER_LOGIN_HOST"
+echo "~~~ :mag: Testing connection to the login node \"$SUPERCLUSTER_LOGIN_HOST\""
 
 # Do the first check with BatchMode=yes (which won't prompt for password access)
 SUPERCLUSTER_NAME=$(ssh -oBatchMode=yes "$SUPERCLUSTER_LOGIN_HOST" "echo \"\$(whoami)@\$(hostname)\"")
@@ -72,7 +72,7 @@ function run {
   fi
 }
 
-echo '~~~ :package: Preparing repository on the login node'
+echo '~~~ :package: Preparing job folder'
 
 run "rm -rf \"${SUPERCLUSTER_CHECKOUT_FOLDER}\""
 run "mkdir -p \"${SUPERCLUSTER_CHECKOUT_FOLDER}\""
@@ -94,7 +94,7 @@ BEOM
 
 chmod +x "$SUPERCLUSTER_COMMAND_SCRIPT_NAME"
 
-echo '~~~ :floppy_disk: Submitting the job to the cluster'
+echo '~~~ :floppy_disk: Submitting job to the cluster'
 run "sbatch --workdir=\"\$(pwd)\" --job-name=\"${SUPERCLUSTER_JOB_NAME}\" \"${SUPERCLUSTER_RUNNER_SCRIPT_NAME}\""
 EOM
 
@@ -109,6 +109,8 @@ if [[ $SSH_BOOTSTRAP_EXIT_STATUS -ne 0 ]]; then
 fi
 
 echo '~~~ :hourglass: Waiting for super cluster job to start'
+
+echo "This could take a while..."
 
 # The job status check command will grab the state for the current job (and
 # make sure it has no leading or trailing whitespace)
@@ -126,7 +128,7 @@ while true; do
   SSH_GET_STATUS_EXIT_STATUS=$?
 
   if [[ "$NEW_JOB_STATUS" != "" ]]; then
-    echo "Status has changed to \"$NEW_JOB_STATUS\""
+    echo "🕐  Status has changed to \"$NEW_JOB_STATUS\" ($(date))"
   fi
 
   # If the SSH call fails, wait a while and try the loop again
