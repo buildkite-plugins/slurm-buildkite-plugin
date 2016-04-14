@@ -176,9 +176,13 @@ while true; do
     IS_RUNNING=true
   fi
 
-  # If the job IS_RUNNING and the NEW_JOB_STATUS is no longer *"RUNNING"*, then
-  # it's done!
-  if [[ "$NEW_JOB_STATUS" != *"RUNNING"* ]] && [[ "$IS_RUNNING" = true ]]; then
+  # Woo! It's done!
+  if [[ "$NEW_JOB_STATUS" == *"COMPLETED"* ]]
+    || [[ "$NEW_JOB_STATUS" == *"CANCELLED"* ]]
+    || [[ "$NEW_JOB_STATUS" == *"FAILED"* ]]
+    || [[ "$NEW_JOB_STATUS" == *"TIMEOUT"* ]]
+    || [[ "$NEW_JOB_STATUS" == *"BOOT_FAIL"* ]]
+    || [[ "$NEW_JOB_STATUS" == *"NODE_FAIL"* ]]; then
     echo "~~~ :thumbsup: Finished on super cluster"
     break
   fi
