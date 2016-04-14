@@ -34,7 +34,7 @@ COMMAND="hostname && sleep 20"
 # Come up with the place that the repository will be checked out to
 SANITIZED_AGENT_NAME=$(echo "$BUILDKITE_AGENT_NAME" | tr -d '"')
 PIPELINE_FOLDER_NAME="$SANITIZED_AGENT_NAME/$BUILDKITE_ORGANIZATION_SLUG/$BUILDKITE_PIPELINE_SLUG"
-export SUPERCLUSTER_CHECKOUT_FOLDER=".buildkite/builds/$PIPELINE_FOLDER_NAME"
+export SUPERCLUSTER_CHECKOUT_FOLDER=".buildkite/$PIPELINE_FOLDER_NAME"
 
 # The job name is suffixed with the current PID (so if a job is retried with te
 # same $BUILDKITE_JOB_ID, when we check job statuses it won't return the
