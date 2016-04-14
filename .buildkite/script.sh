@@ -85,13 +85,37 @@ function run {
 
 echo '~~~ :package: Preparing job folder'
 
-run "rm -rf \"${SUPERCLUSTER_CHECKOUT_FOLDER}\""
 run "mkdir -p \"${SUPERCLUSTER_CHECKOUT_FOLDER}\""
 
 export GIT_TERMINAL_PROMPT=0
 
 run "cd \"${SUPERCLUSTER_CHECKOUT_FOLDER}\""
-run "git clone -v -- \"${BUILDKITE_REPO}\" ."
+
+if [[ -d ".git" ]]; then
+  run "git remote set-url origin \"${BUILDKITE_REPO}\""
+else
+  run "git clone -v -- \"${BUILDKITE_REPO}\" ."
+fi
+
+run "git clean --fdqx"
+run "git submodule foreach --recursive git clean \"--fdqx\""
+
+if [[ -n "${BUILDKITE_REFSPEC:-}" ]]; then
+  run "git fetch -v origin \"${BUILDKITE_REFSPEC}\""
+  run "git checkout -f \"${BUILDKITE_COMMIT}\""
+elif [[ "${BUILDKITE_PULL_REQUEST}" != "false" ]] && [[ "${BUILDKITE_PROJECT_PROVIDER}" == *"github"* ]]; then
+  run "git fetch -v origin \"refs/pull/${BUILDKITE_PULL_REQUEST}/head\""
+  run "git checkout -f \"${BUILDKITE_COMMIT}\""
+elif [[ "${BUILDKITE_COMMIT}" == "HEAD" ]]; then
+  run "git fetch -v origin \"${BUILDKITE_BRANCH}\""
+  run "git checkout -f FETCH_HEAD"
+else
+  run "git fetch -v origin \"${BUILDKITE_COMMIT}\" || git fetch -v origin \"\$(git config remote.origin.fetch)\" \"+refs/tags/*:refs/tags/*\""
+  run "git checkout -f \"${BUILDKITE_COMMIT}\""
+fi
+
+run "git submodule update --init --recursive"
+run "git submodule foreach --recursive git reset --hard"
 
 cat > "$SUPERCLUSTER_RUNNER_SCRIPT_NAME" <<- BEOM
 ${SUPERCLUSTER_RUNNER_SCRIPT}
