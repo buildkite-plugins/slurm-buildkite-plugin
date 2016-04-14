@@ -1,16 +1,16 @@
 #!/bin/bash
 
 function run {
-  echo -e "\033[90m$\033[0m \$1"
-  eval "\$1"
-  EVAL_EXIT_STATUS=\$?
+  echo -e "\033[90m$\033[0m $1"
+  eval "$1"
+  EVAL_EXIT_STATUS=$?
 
-  if [[ \$EVAL_EXIT_STATUS -ne 0 ]]; then
-    exit \$EVAL_EXIT_STATUS
+  if [[ $EVAL_EXIT_STATUS -ne 0 ]]; then
+    exit $EVAL_EXIT_STATUS
   fi
 }
 
-echo "~~~ :mag: Testing connection to the login node \"$SUPERCLUSTER_LOGIN_HOST\""
+echo "--- :mag: Testing connection to the login node \"$SUPERCLUSTER_LOGIN_HOST\""
 
 # Do the first check with BatchMode=yes (which won't prompt for password access)
 SUPERCLUSTER_NAME=$(ssh -oBatchMode=yes "$SUPERCLUSTER_LOGIN_HOST" "echo \"\$(whoami)@\$(hostname)\"")
@@ -80,7 +80,7 @@ function run {
   fi
 }
 
-echo '~~~ :package: Preparing job folder'
+echo '--- :package: Preparing job folder'
 
 run "rm -rf \"${SUPERCLUSTER_CHECKOUT_FOLDER}\""
 run "mkdir -p \"${SUPERCLUSTER_CHECKOUT_FOLDER}\""
@@ -102,11 +102,11 @@ BEOM
 
 chmod +x "$SUPERCLUSTER_COMMAND_SCRIPT_NAME"
 
-echo '~~~ :floppy_disk: Submitting job to the cluster'
+echo '--- :floppy_disk: Submitting job to the cluster'
 run "sbatch --workdir=\"\$(pwd)\" --job-name=\"${SUPERCLUSTER_JOB_NAME}\" \"${SUPERCLUSTER_RUNNER_SCRIPT_NAME}\""
 EOM
 
-echo '~~~ :wrench: Connecting to the login node'
+echo '--- :wrench: Connecting to the login node'
 
 ssh "$SUPERCLUSTER_LOGIN_HOST" "bash -s" < "$SUPERCLUSTER_BOOTSTRAP_SCRIPT_NAME"
 SSH_BOOTSTRAP_EXIT_STATUS=$?
@@ -116,7 +116,7 @@ if [[ $SSH_BOOTSTRAP_EXIT_STATUS -ne 0 ]]; then
   exit $SSH_BOOTSTRAP_EXIT_STATUS
 fi
 
-echo '~~~ :hourglass: Waiting for super cluster job to start'
+echo '--- :hourglass: Waiting for super cluster job to start'
 
 echo "This could take a while..."
 
@@ -147,14 +147,14 @@ while true; do
 
   # Oh, it's running now!?
   if [[ "$NEW_JOB_STATUS" == *"RUNNING"* ]] && [[ "$IS_RUNNING" = false ]]; then
-    echo "~~~ :runner: Running on super cluster"
+    echo "--- :runner: Running on super cluster"
     IS_RUNNING=true
   fi
 
   # If the job IS_RUNNING and the NEW_JOB_STATUS is no longer *"RUNNING"*, then
   # it's done!
   if [[ "$NEW_JOB_STATUS" != *"RUNNING"* ]] && [[ "$IS_RUNNING" = true ]]; then
-    echo "~~~ :thumbsup: Finished on super cluster"
+    echo "--- :thumbsup: Finished on super cluster"
     break
   fi
 
@@ -172,11 +172,11 @@ while true; do
 EOM
 done
 
-echo "~~~ :earth_asia: Downloading logs from login node"
+echo "--- :earth_asia: Downloading logs from login node"
 
 run "scp \"${SUPERCLUSTER_LOGIN_HOST}\":\"${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_COMMAND_LOG_NAME} ${SUPERCLUSTER_CHECKOUT_FOLDER}/${SUPERCLUSTER_EXIT_STATUS_FILE}\" ."
 
-echo "--- :notebook_with_decorative_cover: Results from \`$COMMAND\`"
+echo "+++ :notebook_with_decorative_cover: Results from \`$COMMAND\`"
 
 run "cat \"${SUPERCLUSTER_COMMAND_LOG_NAME}\""
 
