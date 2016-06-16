@@ -1,3 +1,0 @@
-- Support configuring the sbatch command via plugin options
-- Copy the Buildkite ENV to the command script env
-- Artifact downloading from the login node
