@@ -1,0 +1,7 @@
+{
+  "name": "slurm",
+  "description": "Run Buildkite jobs on super computing clusters using Slurm",
+  "author": "@buildkite",
+  "public": true,
+  "requirements": ["ssh"]
+}
