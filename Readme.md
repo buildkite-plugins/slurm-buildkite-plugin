@@ -6,10 +6,18 @@ A [Buildkite](https://buildkite.com/) plugin to run build jobs on super computin
 
 ```yml
 steps:
-  - name: "Slurm"
+  - command: "echo hello world"
+    env:
+      OMP_NUM_THREADS: 0
+      NUM_HYPERTHREADS: 0
     plugins:
-      slurm:
-        TODO: TODO
+      - https://github.com/buildkite/slurm-buildkite-plugin:
+          time: "00:05:00"
+          nodes: 1
+          ntasks-per-node: 16
+          modules:
+            - "fftw-xl/3.3.4"
+            - "vlsci"
 ```
 
 ## Configuring
