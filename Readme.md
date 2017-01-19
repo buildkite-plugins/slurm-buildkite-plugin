@@ -11,7 +11,7 @@ steps:
       OMP_NUM_THREADS: 0
       NUM_HYPERTHREADS: 0
     plugins:
-      - https://github.com/buildkite/slurm-buildkite-plugin:
+      - slurm:
           time: "00:05:00"
           nodes: 1
           ntasks-per-node: 16
