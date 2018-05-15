@@ -1,4 +1,4 @@
-name: slurm
+name: Slurm
 description: Run Buildkite jobs on super computing clusters using Slurm
 author: https://github.com/buildkite
 requirements:
